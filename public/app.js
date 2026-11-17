@@ -25,11 +25,15 @@ function drawSegment(s) {
 }
 
 const clearCanvas = () => ctx.clearRect(0, 0, W, H);
-const setUsers = (n) => (status.textContent = `${n} online · room ${room}`);
+function setStatus(text, cls) {
+  status.textContent = text;
+  status.className = `status ${cls}`;
+}
+const setUsers = (n) => setStatus(`${n} online · room ${room}`, "live");
 
 // Re-sends join on reconnect; the server replays history, so redraw from scratch.
 socket.on("connect", () => socket.emit("join", room));
-socket.on("disconnect", () => (status.textContent = "Disconnected, retrying…"));
+socket.on("disconnect", () => setStatus("Disconnected, retrying…", "down"));
 socket.on("init", ({ segments, users }) => {
   clearCanvas();
   segments.forEach(drawSegment);
@@ -90,6 +94,30 @@ socket.on("leave", (id) => {
   cursors.get(id)?.remove();
   cursors.delete(id);
 });
+
+// Colour swatches drive the same colour input the drawing code already reads.
+const swatches = [...document.querySelectorAll(".swatch")];
+function markActive() {
+  swatches.forEach((s) => s.classList.toggle("active", s.dataset.color === colorEl.value.toLowerCase()));
+}
+swatches.forEach((s) =>
+  s.addEventListener("click", () => {
+    colorEl.value = s.dataset.color;
+    markActive();
+  })
+);
+colorEl.addEventListener("input", markActive);
+markActive();
+
+// Size preview dot shows the real pen width (scaled to the on-screen canvas).
+const dot = document.getElementById("dot");
+function showSize() {
+  const scale = canvas.getBoundingClientRect().width / W;
+  dot.style.setProperty("--d", `${Math.max(2, Math.min(24, sizeEl.value * scale))}px`);
+}
+sizeEl.addEventListener("input", showSize);
+addEventListener("resize", showSize);
+showSize();
 
 document.getElementById("clear").addEventListener("click", () => {
   clearCanvas();
