@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { Server } from "socket.io";
-import { Rooms, ROOM_ID, validCursor } from "./room.js";
+import { Rooms, ROOM_ID, validCursor, cleanName, throttle } from "./room.js";
 
 // Whitelist instead of path joining: no way to traverse out of public/.
 const FILES = {
@@ -39,16 +39,30 @@ io.on("connection", (socket) => {
     socket.to(room).emit("users", io.sockets.adapter.rooms.get(room).size);
   });
 
+  // Flood protection: a normal drawer sends well under 150 events/s; anything past the cap is dropped.
+  const allow = throttle(300, 1000);
+  let name = "Guest";
+
+  socket.on("name", (n) => {
+    name = cleanName(n);
+  });
+
   socket.on("draw", (seg) => {
-    if (room && rooms.addSegment(room, seg)) socket.to(room).emit("draw", seg);
+    if (!room || !allow()) return;
+    const clean = rooms.addSegment(room, seg, socket.id);
+    if (clean) socket.to(room).emit("draw", clean);
+  });
+
+  socket.on("undo", (stroke) => {
+    if (room && allow() && rooms.undo(room, stroke, socket.id)) socket.to(room).emit("undo", stroke);
   });
 
   socket.on("cursor", (p) => {
-    if (room && validCursor(p)) socket.volatile.to(room).emit("cursor", { id: socket.id, x: p.x, y: p.y });
+    if (room && allow() && validCursor(p)) socket.volatile.to(room).emit("cursor", { id: socket.id, x: p.x, y: p.y, name });
   });
 
   socket.on("clear", () => {
-    if (!room) return;
+    if (!room || !allow()) return;
     rooms.clear(room);
     socket.to(room).emit("clear");
   });

@@ -61,7 +61,10 @@ canvas {
   width: 100%; height: 100%; border-radius: 12px; box-shadow: var(--shadow); touch-action: none; cursor: crosshair;
   background: #fff; /* white so the eraser (a white pen) blends in */
 }
-.cursor { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 1px 4px rgb(0 0 0 / .35); pointer-events: none; transition: left 60ms linear, top 60ms linear; }
+.cursor { position: absolute; width: 0; height: 0; pointer-events: none; transition: left 60ms linear, top 60ms linear; }
+.cursor::before { content: ""; position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--c); border: 2px solid #fff; box-shadow: 0 1px 4px rgb(0 0 0 / .35); }
+.cursor span { position: absolute; left: 10px; top: 6px; padding: 1px 7px; font-size: 12px; white-space: nowrap; color: #fff; background: var(--c); border-radius: 999px; }
+#name { width: 130px; padding: 7px 10px; font: inherit; color: inherit; background: transparent; border: 1px solid var(--line); border-radius: 8px; }
 
 @media (max-width: 720px) {
   .actions { margin-left: 0; width: 100%; justify-content: space-between; }
