@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Collab Whiteboard</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <strong>Collab Whiteboard</strong>
+    <label>Color <input id="color" type="color" value="#2563eb" aria-label="Pen color"></label>
+    <label>Size <input id="size" type="range" min="1" max="40" value="4" aria-label="Pen size"></label>
+    <button id="clear" type="button">Clear</button>
+    <button id="share" type="button">Copy link</button>
+    <span id="status" role="status" aria-live="polite">Connecting…</span>
+  </header>
+  <main id="board">
+    <canvas id="canvas" width="1600" height="900" aria-label="Shared drawing canvas"></canvas>
+  </main>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
